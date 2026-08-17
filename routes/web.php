@@ -45,6 +45,8 @@ Route::get('/hosting/email', [HostingController::class, 'email'])->name('hosting
 Route::get('/domains', [DomainController::class, 'index'])->name('domains');
 Route::get('/domains/search', [DomainController::class, 'search'])->name('domains.search');
 Route::post('/domains/check', [DomainController::class, 'check'])->name('domains.check');
+Route::get('/domains/transfer', [DomainController::class, 'transfer'])->name('domains.transfer');
+Route::post('/domains/transfer', [DomainController::class, 'transferSubmit'])->name('domains.transfer.submit');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 Route::get('/ssl', [PricingController::class, 'ssl'])->name('ssl');
 Route::get('/reseller-hosting', [PricingController::class, 'reseller'])->name('reseller');
@@ -82,6 +84,12 @@ Route::middleware(['auth'])->prefix('dashboard')->name('dashboard.')->group(func
         Route::get('/', [HostingAccountController::class, 'index'])->name('index');
         Route::get('/{id}', [HostingAccountController::class, 'show'])->name('show');
         Route::get('/{id}/cpanel', [HostingAccountController::class, 'cpanelSso'])->name('cpanel');
+
+        // Softaculous app installer
+        Route::get('/{id}/apps', [\App\Http\Controllers\Dashboard\SoftaculousController::class, 'available'])->name('apps.available');
+        Route::post('/{id}/apps/install', [\App\Http\Controllers\Dashboard\SoftaculousController::class, 'install'])->name('apps.install');
+        Route::post('/{id}/apps/{installId}/upgrade', [\App\Http\Controllers\Dashboard\SoftaculousController::class, 'upgrade'])->name('apps.upgrade');
+        Route::delete('/{id}/apps/{installId}', [\App\Http\Controllers\Dashboard\SoftaculousController::class, 'remove'])->name('apps.remove');
     });
 
     // Domain management
@@ -92,9 +100,7 @@ Route::middleware(['auth'])->prefix('dashboard')->name('dashboard.')->group(func
         Route::post('/{id}/nameservers', [DomainManagementController::class, 'updateNameservers'])->name('nameservers.update');
         Route::post('/{id}/lock', [DomainManagementController::class, 'toggleLock'])->name('lock.toggle');
         Route::post('/{id}/privacy', [DomainManagementController::class, 'togglePrivacy'])->name('privacy.toggle');
-    });
-
-    // Invoices
+    });    // Invoices
     Route::prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->name('index');
         Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
@@ -225,9 +231,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Coupons
     Route::resource('coupons', CouponController::class);
 
-    // Domain TLD Pricing
-    Route::resource('tld-pricing', \App\Http\Controllers\Admin\TldPricingController::class)->parameters(['tld-pricing' => 'tldPricing']);
+    // Domain TLD Pricing — bulk-update MUST come before resource to avoid route conflict
     Route::post('tld-pricing/bulk-update', [\App\Http\Controllers\Admin\TldPricingController::class, 'bulkUpdate'])->name('tld-pricing.bulk-update');
+    Route::resource('tld-pricing', \App\Http\Controllers\Admin\TldPricingController::class)->parameters(['tld-pricing' => 'tldPricing']);
 
     // Affiliates
     Route::prefix('affiliates')->name('affiliates.')->group(function () {

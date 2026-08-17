@@ -200,7 +200,7 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="item-price">$ {{ number_format($item['price']) }}</td>
+                        <td class="item-price">$ {{ number_format($item['price'], 2) }}</td>
                     </tr>
                     @endforeach
 
@@ -223,7 +223,7 @@
                                 @endif
                             </div>
                         </td>
-                        <td style="text-align:right;font-weight:700;color:#22c55e;">− $ {{ number_format($total['discount']) }}</td>
+                        <td style="text-align:right;font-weight:700;color:#22c55e;">− $ {{ number_format($total['discount'], 2) }}</td>
                     </tr>
                     @endif
                 </table>
@@ -232,7 +232,7 @@
                 <table class="order-table">
                     <tr class="total-row">
                         <td style="text-align:left;color:#374151;">Total :</td>
-                        <td>$ {{ number_format($total['total']) }}</td>
+                        <td>$ {{ number_format($total['total'], 2) }}</td>
                     </tr>
                 </table>
 
@@ -307,7 +307,7 @@
                 {{-- Order total --}}
                 <div class="d-flex justify-content-between align-items-center mb-4 px-1">
                     <span class="text-muted">Order Total</span>
-                    <span class="fw-bold fs-5" style="color:#0066FF;">$ {{ number_format($total['total']) }}</span>
+                    <span class="fw-bold fs-5" style="color:#0066FF;">$ {{ number_format($total['total'], 2) }}</span>
                 </div>
 
                 {{-- Proceed to checkout --}}

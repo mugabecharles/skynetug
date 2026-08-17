@@ -19,7 +19,7 @@
                 <h5 class="fw-bold">{{ $pkg->name }}</h5>
                 <p class="text-muted small">{{ $pkg->description }}</p>
                 <div class="mb-3">
-                    <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12) }}</span>
+                    <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12, 2) }}</span>
                     <span class="text-muted small">/mo</span>
                 </div>
                 <ul class="list-unstyled mb-4" style="font-size:.875rem;">
@@ -43,7 +43,7 @@
                 <i class="bi bi-envelope-fill fs-3" style="color:#0066FF;display:block;margin-bottom:.75rem;"></i>
                 <h5 class="fw-bold">{{ $p['name'] }}</h5>
                 <div class="mb-3">
-                    <span style="font-size:2rem;font-weight:800;">$ {{ number_format($p['price_yearly']/12) }}</span>
+                    <span style="font-size:2rem;font-weight:800;">$ {{ number_format($p['price_yearly']/12, 2) }}</span>
                     <span class="text-muted small">/mo</span>
                 </div>
                 <ul class="list-unstyled mb-4" style="font-size:.875rem;">

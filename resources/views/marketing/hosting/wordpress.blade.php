@@ -28,9 +28,9 @@
                 <h5 class="fw-bold">{{ $pkg->name }}</h5>
                 <p class="text-muted small mb-3">{{ $pkg->description }}</p>
                 <div class="mb-4">
-                    <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12) }}</span>
+                    <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12, 2) }}</span>
                     <span class="text-muted small">/mo</span>
-                    <div class="text-muted small">Billed $ {{ number_format($pkg->price_yearly) }}/yr</div>
+                    <div class="text-muted small">Billed $ {{ number_format($pkg->price_yearly, 2) }}/yr</div>
                 </div>
                 <ul class="list-unstyled mb-4" style="font-size:.875rem;">
                     <li class="py-1"><i class="bi bi-check2 text-success me-2"></i>{{ $pkg->disk_space_mb==0?'Unlimited':number_format($pkg->disk_space_mb/1024,0).' GB' }} SSD Storage</li>
@@ -64,7 +64,7 @@
                 <div class="mb-2"><i class="bi bi-wordpress" style="color:#0066FF;font-size:1.5rem;"></i></div>
                 <h5 class="fw-bold">{{ $p['name'] }}</h5>
                 <div class="mb-4">
-                    <span style="font-size:2rem;font-weight:800;">$ {{ number_format($p['price_yearly']/12) }}</span>
+                    <span style="font-size:2rem;font-weight:800;">$ {{ number_format($p['price_yearly']/12, 2) }}</span>
                     <span class="text-muted small">/mo</span>
                 </div>
                 <ul class="list-unstyled mb-4" style="font-size:.875rem;">

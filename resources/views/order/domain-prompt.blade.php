@@ -311,7 +311,7 @@
                                 subscription
                             </div>
                         </div>
-                        <div class="cart-line-price">$ {{ number_format($pending['price'] ?? 0) }}</div>
+                        <div class="cart-line-price">$ {{ number_format($pending['price'] ?? 0, 2) }}</div>
                     </div>
                     @php $sidebarTotal += $pending['price'] ?? 0; @endphp
 
@@ -332,7 +332,7 @@
                             <div class="cart-line-name">{{ $item['name'] }}</div>
                             <div class="cart-line-sub">{{ ucfirst($item['type']) }} · {{ ucfirst($item['billing_cycle'] ?? 'yearly') }}</div>
                         </div>
-                        <div class="cart-line-price">$ {{ number_format($item['price']) }}</div>
+                        <div class="cart-line-price">$ {{ number_format($item['price'], 2) }}</div>
                     </div>
                     @php $sidebarTotal += $item['price']; @endphp
                     @endforeach
@@ -345,7 +345,7 @@
                 {{-- Total --}}
                 <div class="cart-total-row">
                     <span>Total :</span>
-                    <span style="color:#0066FF;font-size:1.05rem;">$ {{ number_format($sidebarTotal) }}</span>
+                    <span style="color:#0066FF;font-size:1.05rem;">$ {{ number_format($sidebarTotal, 2) }}</span>
                 </div>
 
                 {{-- Empty cart --}}

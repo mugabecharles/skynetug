@@ -228,7 +228,7 @@
 
                 {{-- Price + Remove --}}
                 <div class="text-end flex-shrink-0">
-                    <div class="fw-bold text-sky fs-6">$ {{ number_format($item['price']) }}</div>
+                    <div class="fw-bold text-sky fs-6">$ {{ number_format($item['price'], 2) }}</div>
                     <div class="text-muted" style="font-size:.75rem;">
                         @if(($item['billing_cycle'] ?? '') === 'monthly') /mo
                         @elseif(($item['billing_cycle'] ?? '') === 'biennially') /2 yrs
@@ -271,7 +271,7 @@
                 <span class="text-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                     {{ $item['name'] }}
                 </span>
-                <span class="fw-semibold">$ {{ number_format($item['price']) }}</span>
+                <span class="fw-semibold">$ {{ number_format($item['price'], 2) }}</span>
             </div>
             @endforeach
 
@@ -279,7 +279,7 @@
 
             <div class="d-flex justify-content-between mb-2 small">
                 <span class="text-muted">Subtotal</span>
-                <span>$ {{ number_format($total['subtotal']) }}</span>
+                <span>$ {{ number_format($total['subtotal'], 2) }}</span>
             </div>
 
             @if($total['discount'] > 0)
@@ -290,20 +290,20 @@
                         <span class="badge bg-success-subtle text-success" style="font-size:.7rem;">{{ $total['coupon']['code'] }}</span>
                     @endif
                 </span>
-                <span class="text-success fw-semibold">− $ {{ number_format($total['discount']) }}</span>
+                <span class="text-success fw-semibold">− $ {{ number_format($total['discount'], 2) }}</span>
             </div>
             @endif
 
             @if($total['tax'] > 0)
             <div class="d-flex justify-content-between mb-2 small">
                 <span class="text-muted">Tax</span>
-                <span>$ {{ number_format($total['tax']) }}</span>
+                <span>$ {{ number_format($total['tax'], 2) }}</span>
             </div>
             @endif
 
             <div class="d-flex justify-content-between fw-bold border-top pt-3 mt-1">
                 <span class="fs-6">Total</span>
-                <span class="text-sky fs-5">$ {{ number_format($total['total']) }}</span>
+                <span class="text-sky fs-5">$ {{ number_format($total['total'], 2) }}</span>
             </div>
 
             {{-- Coupon section --}}

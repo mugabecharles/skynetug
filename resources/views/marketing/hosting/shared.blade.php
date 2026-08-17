@@ -54,12 +54,12 @@
                 <p class="text-muted small mb-3">{{ $p['popular'] ? 'Growing businesses' : 'Ideal for '.strtolower($p['name']) }}</p>
                 <div class="mb-4">
                     <div class="price-yearly">
-                        <span style="font-size:2rem;font-weight:800;color:#0A0F1E;">$ {{ number_format($p['price_yearly']/12) }}</span>
+                        <span style="font-size:2rem;font-weight:800;color:#0A0F1E;">$ {{ number_format($p['price_yearly']/12, 2) }}</span>
                         <span class="text-muted small">/mo</span>
-                        <div class="text-muted small">Billed $ {{ number_format($p['price_yearly']) }}/yr</div>
+                        <div class="text-muted small">Billed $ {{ number_format($p['price_yearly'], 2) }}/yr</div>
                     </div>
                     <div class="price-monthly" style="display:none;">
-                        <span style="font-size:2rem;font-weight:800;color:#0A0F1E;">$ {{ number_format($p['price_monthly']) }}</span>
+                        <span style="font-size:2rem;font-weight:800;color:#0A0F1E;">$ {{ number_format($p['price_monthly'], 2) }}</span>
                         <span class="text-muted small">/mo</span>
                     </div>
                 </div>
@@ -109,12 +109,12 @@
                 <p class="text-muted small mb-3">{{ $pkg->description }}</p>
                 <div class="mb-4">
                     <div class="price-yearly">
-                        <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12) }}</span>
+                        <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12, 2) }}</span>
                         <span class="text-muted small">/mo</span>
-                        <div class="text-muted small">Billed $ {{ number_format($pkg->price_yearly) }}/yr</div>
+                        <div class="text-muted small">Billed $ {{ number_format($pkg->price_yearly, 2) }}/yr</div>
                     </div>
                     <div class="price-monthly" style="display:none;">
-                        <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_monthly) }}</span>
+                        <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_monthly, 2) }}</span>
                         <span class="text-muted small">/mo</span>
                     </div>
                 </div>

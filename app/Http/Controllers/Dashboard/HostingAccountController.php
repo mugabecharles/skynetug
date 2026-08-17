@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\HostingAccount;
 use App\Services\CpanelService;
+use App\Services\SoftaculousService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class HostingAccountController extends Controller
 {
-    public function __construct(protected CpanelService $cpanel) {}
+    public function __construct(
+        protected CpanelService      $cpanel,
+        protected SoftaculousService $softaculous,
+    ) {}
 
     public function index()
     {
@@ -28,7 +32,12 @@ class HostingAccountController extends Controller
             ->with(['hostingPackage', 'server', 'sslCertificates', 'emailAccounts', 'backups'])
             ->findOrFail($id);
 
-        return view('dashboard.hosting.show', compact('account'));
+        // Load Softaculous installed apps (empty array if account not active or not configured)
+        $installedApps = $account->status === 'active'
+            ? $this->softaculous->listInstalled($account->username)
+            : [];
+
+        return view('dashboard.hosting.show', compact('account', 'installedApps'));
     }
 
     public function cpanelSso(int $id)

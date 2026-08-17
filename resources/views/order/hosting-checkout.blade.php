@@ -55,7 +55,7 @@
                                     class="d-none cycle-radio"
                                     {{ $cycle['value'] === 'yearly' ? 'checked' : '' }}>
                                 <div class="fw-bold">{{ $cycle['label'] }}</div>
-                                <div class="text-sky fw-bold fs-5 mt-1">$ {{ number_format($cycle['price']) }}</div>
+                                <div class="text-sky fw-bold fs-5 mt-1">$ {{ number_format($cycle['price'], 2) }}</div>
                                 <div class="text-muted" style="font-size:.75rem;">
                                     {{ $cycle['value'] === 'monthly' ? 'per month' : 'total' }}
                                 </div>
@@ -99,7 +99,7 @@
                         <div class="fw-semibold">{{ $package->name }}</div>
                         <div class="text-muted small">{{ ucfirst($package->type) }} Hosting</div>
                     </div>
-                    <span class="fw-bold text-sky" id="summaryPrice">$ {{ number_format($package->price_yearly) }}</span>
+                    <span class="fw-bold text-sky" id="summaryPrice">$ {{ number_format($package->price_yearly, 2) }}</span>
                 </div>
 
                 <hr>

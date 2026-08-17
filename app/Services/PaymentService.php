@@ -296,9 +296,23 @@ class PaymentService
             if ($item->item_type === 'domain') {
                 $domain = $item->meta['domain'] ?? null;
                 if ($domain) {
-                    Log::info("Domain registration queued: {$domain}");
-                    // In production: dispatch domain registration job
-                    // \App\Jobs\RegisterDomain::dispatch($domain, $invoice->user);
+                    // Check if this is a transfer or a new registration
+                    $isTransfer    = (bool) ($item->meta['is_transfer'] ?? false);
+                    $eppSessionKey = $item->meta['epp_session_key'] ?? null;
+
+                    if ($isTransfer && $eppSessionKey) {
+                        // Retrieve EPP code stored in session during cart add
+                        $eppCode = session('transfer_epp_' . $eppSessionKey);
+                        if ($eppCode) {
+                            \App\Jobs\TransferDomain::dispatch($domain, $invoice->user, $invoice, $eppCode);
+                            Log::info("Domain transfer queued: {$domain}");
+                            // Clean up EPP from session
+                            session()->forget('transfer_epp_' . $eppSessionKey);
+                        }
+                    } else {
+                        \App\Jobs\RegisterDomain::dispatch($domain, $invoice->user, $invoice);
+                        Log::info("Domain registration queued: {$domain}");
+                    }
                 }
             }
         }

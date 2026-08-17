@@ -18,6 +18,11 @@
         <span class="section-badge" style="background:rgba(0,200,150,.15);color:#00C896;border:1px solid rgba(0,200,150,.3);">Domain Registration</span>
         <h1 class="fw-bold text-white mb-3" style="font-size:clamp(1.8rem,4vw,3rem);">Find Your Perfect Domain Name</h1>
         <p class="text-white-50 mb-4">Register .com, .ug, .co.ug and more. Instant registration, free DNS management.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+            <a href="{{ route('domains.transfer') }}" class="btn btn-outline-light btn-sm px-4" style="border-radius:20px;">
+                <i class="bi bi-arrow-left-right me-2"></i>Transfer an Existing Domain
+            </a>
+        </div>
 
         <div class="mx-auto" style="max-width:620px;">
             <div class="input-group input-group-lg">

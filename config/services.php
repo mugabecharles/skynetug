@@ -51,9 +51,25 @@ return [
     'resellerclub' => [
         'reseller_id' => env('RESELLERCLUB_RESELLER_ID'),
         'api_key'     => env('RESELLERCLUB_API_KEY'),
+        'base_url'    => env('RESELLERCLUB_BASE_URL', 'https://httpapi.com/api'),
     ],
     'namesilo' => [
-        'api_key' => env('NAMESILO_API_KEY'),
+        'api_key'  => env('NAMESILO_API_KEY'),
+        'base_url' => env('NAMESILO_BASE_URL', 'https://www.namesilo.com/api'),
+    ],
+
+    // ── Softaculous ──────────────────────────────────────────────────────
+    'softaculous' => [
+        'host'      => env('CPANEL_HOST'),          // same server as cPanel
+        'port'      => env('CPANEL_PORT', 2087),
+        'username'  => env('CPANEL_USERNAME', 'root'),
+        'api_token' => env('CPANEL_API_TOKEN'),
+    ],
+
+    // ── Live Chat (Tawk.to) ──────────────────────────────────────────────
+    'tawkto' => [
+        'property_id' => env('TAWKTO_PROPERTY_ID'),
+        'widget_id'   => env('TAWKTO_WIDGET_ID', 'default'),
     ],
 
     // ── Cloudflare ───────────────────────────────────────────────────────

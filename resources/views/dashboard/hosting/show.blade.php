@@ -59,6 +59,9 @@
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ssl">SSL Certs</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#emails">Email Accounts</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#backups">Backups</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#apps">
+                <i class="bi bi-grid me-1"></i>App Installer
+            </button></li>
         </ul>
     </div>
 
@@ -202,5 +205,185 @@
 
     </div>
 </div>
+
+{{-- ── Softaculous App Installer Tab ─────────────────────────────────── --}}
+<div class="tab-pane fade" id="apps">
+    <div class="mt-3">
+
+        @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+        @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+
+        {{-- Installed apps --}}
+        <h6 class="fw-bold mb-3">Installed Applications</h6>
+
+        @if(count($installedApps) > 0)
+        <div class="table-responsive mb-4">
+            <table class="table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Application</th>
+                        <th>Version</th>
+                        <th>URL</th>
+                        <th>Installed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($installedApps as $app)
+                    <tr>
+                        <td class="fw-semibold">{{ $app['app_name'] }}</td>
+                        <td><span class="badge bg-secondary">v{{ $app['version'] }}</span></td>
+                        <td>
+                            @if($app['install_url'])
+                            <a href="{{ $app['install_url'] }}" target="_blank" class="small text-primary">
+                                {{ $app['install_url'] }} <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+                            @else
+                            <span class="text-muted small">{{ $app['install_dir'] ?? '-' }}</span>
+                            @endif
+                        </td>
+                        <td class="small text-muted">{{ $app['installed_at'] ?? '-' }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <form method="POST" action="{{ route('dashboard.hosting.apps.upgrade', [$account->id, $app['install_id']]) }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-outline-primary"
+                                        onclick="return confirm('Upgrade {{ $app['app_name'] }} to latest version?')"
+                                        title="Upgrade to latest version">
+                                        <i class="bi bi-arrow-up-circle me-1"></i>Update
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('dashboard.hosting.apps.remove', [$account->id, $app['install_id']]) }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Remove {{ $app['app_name'] }}? This cannot be undone.')"
+                                        title="Remove application">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <div class="text-center py-4 mb-4" style="background:#f8fafc;border-radius:10px;border:1.5px dashed #e2e8f0;">
+            <i class="bi bi-grid" style="font-size:2.5rem;color:#cbd5e1;"></i>
+            <p class="text-muted mt-2 mb-0">No applications installed yet. Install one below.</p>
+        </div>
+        @endif
+
+        {{-- Install new app --}}
+        @if($account->status === 'active')
+        <h6 class="fw-bold mb-3">Install a New Application</h6>
+
+        <div class="row g-3 mb-4" id="appCatalog">
+            @php
+                $catalog = app(\App\Services\SoftaculousService::class)->listAvailable($account->username);
+            @endphp
+            @foreach($catalog as $app)
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card border h-100" style="border-radius:10px;cursor:pointer;"
+                     onclick="openInstallModal({{ $app['sid'] }}, '{{ addslashes($app['name']) }}')"
+                     title="Install {{ $app['name'] }}">
+                    <div class="card-body text-center p-3">
+                        <div style="width:48px;height:48px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+                            <i class="bi bi-box-seam" style="font-size:1.4rem;color:#0066FF;"></i>
+                        </div>
+                        <div class="fw-semibold" style="font-size:.88rem;">{{ $app['name'] }}</div>
+                        <div class="text-muted" style="font-size:.75rem;">{{ ucfirst($app['type'] ?? '') }}</div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
+    </div>
+</div>
+
+    </div>
+</div>
+
+{{-- ── Install Modal ──────────────────────────────────────────────────── --}}
+<div class="modal fade" id="installModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0">
+                <h6 class="modal-title fw-bold">
+                    <i class="bi bi-grid me-2 text-primary"></i>
+                    Install <span id="modalAppName"></span>
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ route('dashboard.hosting.apps.install', $account->id) }}" id="installForm">
+                @csrf
+                <input type="hidden" name="softid" id="modalSoftId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Site Name <span class="text-danger">*</span></label>
+                        <input type="text" name="site_name" class="form-control" placeholder="My WordPress Site" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Install Directory <span class="text-muted">(leave blank for root)</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text text-muted small">{{ $account->domain }}/</span>
+                            <input type="text" name="directory" class="form-control" placeholder="blog">
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Admin Username <span class="text-danger">*</span></label>
+                        <input type="text" name="admin_username" class="form-control" placeholder="admin" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Admin Password <span class="text-danger">*</span></label>
+                        <input type="password" name="admin_password" class="form-control" required minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Admin Email <span class="text-danger">*</span></label>
+                        <input type="email" name="admin_email" class="form-control"
+                               value="{{ auth()->user()->email }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4">
+                        <i class="bi bi-download me-1"></i>Install Now
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function openInstallModal(sid, name) {
+    document.getElementById('modalSoftId').value  = sid;
+    document.getElementById('modalAppName').textContent = name;
+    new bootstrap.Modal(document.getElementById('installModal')).show();
+}
+// Auto-open apps tab if there's a flash message
+@if(session('success') || session('error'))
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelector('[data-bs-target="#apps"]').click();
+});
+@endif
+</script>
+@endpush
 
 @endsection

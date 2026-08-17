@@ -34,15 +34,15 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-semibold small">Monthly Price ($)</label>
-                <input type="number" name="price_monthly" class="form-control" value="{{ old('price_monthly',$package->price_monthly??0) }}" min="0">
+                <input type="number" name="price_monthly" class="form-control" value="{{ old('price_monthly',$package->price_monthly??0) }}" min="0" step="0.01">
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-semibold small">Yearly Price ($)</label>
-                <input type="number" name="price_yearly" class="form-control" value="{{ old('price_yearly',$package->price_yearly??0) }}" min="0">
+                <input type="number" name="price_yearly" class="form-control" value="{{ old('price_yearly',$package->price_yearly??0) }}" min="0" step="0.01">
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-semibold small">Biennial Price ($)</label>
-                <input type="number" name="price_biennially" class="form-control" value="{{ old('price_biennially',$package->price_biennially??0) }}" min="0">
+                <input type="number" name="price_biennially" class="form-control" value="{{ old('price_biennially',$package->price_biennially??0) }}" min="0" step="0.01">
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-semibold small">Disk Space (MB) <span class="text-muted">0=Unlimited</span></label>

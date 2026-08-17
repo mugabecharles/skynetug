@@ -18,10 +18,10 @@
                 <tr>
                     <td class="fw-semibold">{{ $pkg->name }}</td>
                     <td><span class="badge bg-light text-dark border">{{ ucfirst($pkg->type) }}</span></td>
-                    <td>$ {{ number_format($pkg->price_monthly) }}</td>
-                    <td>$ {{ number_format($pkg->price_yearly) }}</td>
+                    <td>$ {{ number_format($pkg->price_monthly, 2) }}</td>
+                    <td>$ {{ number_format($pkg->price_yearly, 2) }}</td>
                     <td>{{ $pkg->disk_space_mb == 0 ? 'Unlimited' : number_format($pkg->disk_space_mb / 1024, 0).' GB' }}</td>
-                    <td>{{ $pkg->is_featured ? '<i class="bi bi-star-fill text-warning"></i>' : '—' }}</td>
+                    <td>{!! $pkg->is_featured ? '<i class="bi bi-star-fill text-warning"></i>' : '—' !!}</td>
                     <td>
                         @if($pkg->is_active)<span class="badge bg-success-subtle text-success">Active</span>
                         @else<span class="badge bg-secondary-subtle text-secondary">Inactive</span>@endif

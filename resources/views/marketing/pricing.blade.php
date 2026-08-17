@@ -35,9 +35,9 @@
                         <h5 class="fw-bold">{{ $pkg->name }}</h5>
                         <p class="text-muted small">{{ $pkg->description }}</p>
                         <div class="mb-3">
-                            <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12) }}</span>
+                            <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12, 2) }}</span>
                             <span class="text-muted small">/mo</span>
-                            <div class="text-muted small">Billed yearly at $ {{ number_format($pkg->price_yearly) }}</div>
+                            <div class="text-muted small">Billed yearly at $ {{ number_format($pkg->price_yearly, 2) }}</div>
                         </div>
                         <ul class="list-unstyled mb-4" style="font-size:.85rem;">
                             <li class="py-1"><i class="bi bi-check2 text-success me-2"></i>{{ $pkg->disk_space_mb==0?'Unlimited':number_format($pkg->disk_space_mb/1024,0).' GB' }} SSD Storage</li>
@@ -76,7 +76,7 @@
                         <h5 class="fw-bold">{{ $pkg->name }}</h5>
                         <p class="text-muted small">{{ $pkg->description }}</p>
                         <div class="mb-3">
-                            <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12) }}</span>
+                            <span style="font-size:2rem;font-weight:800;">$ {{ number_format($pkg->price_yearly/12, 2) }}</span>
                             <span class="text-muted small">/mo</span>
                         </div>
                         <form method="POST" action="{{ route('cart.add.public') }}">
