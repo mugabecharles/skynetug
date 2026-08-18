@@ -512,113 +512,57 @@
         </style>
 
         <div class="row g-4 justify-content-center">
-            @foreach([
-                [
-                    'name'     => 'Starter Hosting',
-                    'desc'     => 'Perfect for personal sites & blogs',
-                    'price'    => '13.90',
-                    'billed'   => '13.90',
-                    'popular'  => false,
-                    'slug'     => 'starter',
-                    'features' => [
-                        '1 GB Web Space',
-                        'Unlimited Bandwidth',
-                        '5 Email Accounts',
-                        'Free SSL Certificate',
-                        'cPanel Control Panel',
-                        'FREE Site Building Tools',
-                        '24/7/365 Support',
-                        '30-Day Money Back Guarantee',
-                    ],
-                ],
-                [
-                    'name'     => 'Business Hosting',
-                    'desc'     => 'Ideal for growing businesses',
-                    'price'    => '22.80',
-                    'billed'   => '22.80',
-                    'popular'  => true,
-                    'slug'     => 'business',
-                    'features' => [
-                        '2 GB Web Space',
-                        'Unlimited Bandwidth',
-                        '20 Email Accounts',
-                        'Free SSL Certificate',
-                        '1-Click WordPress Install',
-                        'FREE Marketing & SEO Tools',
-                        '24/7/365 Support',
-                        '30-Day Money Back Guarantee',
-                    ],
-                ],
-                [
-                    'name'     => 'Premium Hosting',
-                    'desc'     => 'For high-traffic professional sites',
-                    'price'    => '46.80',
-                    'billed'   => '46.80',
-                    'popular'  => false,
-                    'slug'     => 'professional',
-                    'features' => [
-                        '5 GB Web Space',
-                        'Unlimited Bandwidth',
-                        'Unlimited Email Accounts',
-                        'Free SSL Certificate',
-                        '1-Click WordPress Install',
-                        'FREE Marketing & SEO Tools',
-                        '24/7/365 Support',
-                        '30-Day Money Back Guarantee',
-                    ],
-                ],
-                [
-                    'name'     => 'Dedicated Hosting',
-                    'desc'     => 'Unlimited power for large businesses',
-                    'price'    => '115.00',
-                    'billed'   => '115.00',
-                    'popular'  => false,
-                    'slug'     => 'unlimited',
-                    'features' => [
-                        'Unlimited Web Space',
-                        'Unlimited Bandwidth',
-                        'Unlimited Email Accounts',
-                        'Free SSL Certificate',
-                        '1-Click WordPress Install',
-                        'FREE Marketing & SEO Tools',
-                        '24/7/365 Support',
-                        '30-Day Money Back Guarantee',
-                    ],
-                ],
-            ] as $plan)
+            @forelse($featuredPackages as $plan)
             <div class="col-md-6 col-lg-3">
-                {{-- Spacer so popular card badge has room --}}
-                <div style="padding-top:{{ $plan['popular'] ? '22px' : '22px' }};">
-                    <div class="hplan-card {{ $plan['popular'] ? 'popular' : '' }}">
+                <div style="padding-top:22px;">
+                    <div class="hplan-card {{ $plan->is_featured ? 'popular' : '' }}">
 
-                        @if($plan['popular'])
+                        @if($plan->is_featured)
                         <div class="hplan-badge">⭐ Most Popular</div>
                         @endif
 
-                        <div class="hplan-name">{{ $plan['name'] }}</div>
-                        <div class="hplan-desc">{{ $plan['desc'] }}</div>
+                        <div class="hplan-name">{{ $plan->name }}</div>
+                        <div class="hplan-desc">{{ $plan->description }}</div>
 
                         <div class="hplan-price">
-                            <span data-usd="{{ $plan['price'] }}">$ {{ $plan['price'] }}</span><span class="per"> /yr</span>
+                            <span data-usd="{{ number_format($plan->price_yearly, 2) }}">$ {{ number_format($plan->price_yearly, 2) }}</span><span class="per"> /yr</span>
                         </div>
-                        <div class="hplan-billed" data-usd-billed="{{ $plan['billed'] }}">Billed ${{ $plan['billed'] }}/yr</div>
+                        <div class="hplan-billed" data-usd-billed="{{ number_format($plan->price_yearly, 2) }}">
+                            Billed ${{ number_format($plan->price_yearly, 2) }}/yr &nbsp;·&nbsp;
+                            ${{ number_format($plan->price_yearly / 12, 2) }}/mo
+                        </div>
 
                         <ul class="hplan-features">
-                            @foreach($plan['features'] as $feat)
-                            <li>
-                                <i class="bi bi-check2 hplan-check"></i>
-                                {{ $feat }}
+                            <li><i class="bi bi-check2 hplan-check"></i>
+                                {{ $plan->disk_space_mb == 0 ? 'Unlimited' : number_format($plan->disk_space_mb / 1024, 0) . ' GB' }} Web Space
                             </li>
+                            <li><i class="bi bi-check2 hplan-check"></i>Unlimited Bandwidth</li>
+                            <li><i class="bi bi-check2 hplan-check"></i>
+                                {{ $plan->email_accounts == 0 ? 'Unlimited' : $plan->email_accounts }} Email Accounts
+                            </li>
+                            @if($plan->ssl_included)
+                            <li><i class="bi bi-check2 hplan-check"></i>Free SSL Certificate</li>
+                            @endif
+                            @if($plan->softaculous_included)
+                            <li><i class="bi bi-check2 hplan-check"></i>1-Click WordPress Install</li>
+                            @endif
+                            @if($plan->backup_included)
+                            <li><i class="bi bi-check2 hplan-check"></i>Free Daily Backups</li>
+                            @endif
+                            @foreach((array) $plan->features as $feat)
+                            <li><i class="bi bi-check2 hplan-check"></i>{{ $feat }}</li>
                             @endforeach
+                            <li><i class="bi bi-check2 hplan-check"></i>cPanel Control Panel</li>
+                            <li><i class="bi bi-check2 hplan-check"></i>24/7/365 Support</li>
+                            <li><i class="bi bi-check2 hplan-check"></i>30-Day Money Back Guarantee</li>
                         </ul>
 
                         <form method="POST" action="{{ route('cart.add.public') }}" class="d-inline w-100">
                             @csrf
                             <input type="hidden" name="type"          value="hosting">
-                            <input type="hidden" name="package_id"    value="{{ $plan['package_id'] ?? '' }}">
-                            <input type="hidden" name="name"          value="{{ $plan['name'] }} Hosting">
+                            <input type="hidden" name="package_id"    value="{{ $plan->id }}">
+                            <input type="hidden" name="name"          value="{{ $plan->name }}">
                             <input type="hidden" name="billing_cycle" value="yearly">
-                            <input type="hidden" name="price"         value="{{ $plan['price'] }}">
                             <button type="submit" class="hplan-btn w-100">
                                 <i class="bi bi-cart-plus me-2"></i>Add to Cart
                             </button>
@@ -626,7 +570,12 @@
                     </div>
                 </div>
             </div>
-            @endforeach
+            @empty
+            {{-- Fallback if no featured packages in DB --}}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No hosting plans configured yet. <a href="{{ route('admin.packages.create') }}">Add packages</a> in the admin panel.</p>
+            </div>
+            @endforelse
         </div>
 
         <div class="text-center mt-4">
