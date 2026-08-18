@@ -524,12 +524,12 @@
                         <div class="hplan-name">{{ $plan->name }}</div>
                         <div class="hplan-desc">{{ $plan->description }}</div>
 
-                        <div class="hplan-price">
+                        {{-- Price display — updates when cycle is selected --}}
+                        <div class="hplan-price" id="price-display-{{ $plan->id }}">
                             <span data-usd="{{ number_format($plan->price_yearly, 2) }}">$ {{ number_format($plan->price_yearly, 2) }}</span><span class="per"> /yr</span>
                         </div>
-                        <div class="hplan-billed" data-usd-billed="{{ number_format($plan->price_yearly, 2) }}">
-                            Billed ${{ number_format($plan->price_yearly, 2) }}/yr &nbsp;·&nbsp;
-                            ${{ number_format($plan->price_yearly / 12, 2) }}/mo
+                        <div class="hplan-billed" id="billed-display-{{ $plan->id }}">
+                            Billed ${{ number_format($plan->price_yearly, 2) }}/yr &nbsp;·&nbsp; ${{ number_format($plan->price_yearly / 12, 2) }}/mo
                         </div>
 
                         <ul class="hplan-features">
@@ -557,14 +557,51 @@
                             <li><i class="bi bi-check2 hplan-check"></i>30-Day Money Back Guarantee</li>
                         </ul>
 
+                        {{-- Billing cycle selector --}}
+                        @php
+                            $cycles = [];
+                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'1 Month',   'cycle'=>'monthly',    'total'=>$plan->price_monthly,      'monthly'=>$plan->price_monthly,     'save'=>''];
+                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'3 Months',  'cycle'=>'monthly',    'total'=>$plan->price_monthly * 3,   'monthly'=>$plan->price_monthly,     'save'=>''];
+                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'6 Months',  'cycle'=>'monthly',    'total'=>$plan->price_monthly * 6,   'monthly'=>$plan->price_monthly,     'save'=>''];
+                            if ($plan->price_yearly > 0)     $cycles[] = ['label'=>'12 Months', 'cycle'=>'yearly',     'total'=>$plan->price_yearly,        'monthly'=>$plan->price_yearly/12,   'save'=>'Save 20%'];
+                            if ($plan->price_biennially > 0) $cycles[] = ['label'=>'24 Months', 'cycle'=>'biennially', 'total'=>$plan->price_biennially,    'monthly'=>$plan->price_biennially/24,'save'=>'Save 30%'];
+                        @endphp
+                        <div class="mb-3" style="border:1.5px solid #e8ecf0;border-radius:10px;overflow:hidden;">
+                            @foreach($cycles as $cy)
+                            <label class="d-flex align-items-center justify-content-between px-3 py-2"
+                                   style="cursor:pointer;margin:0;{{ !$loop->last ? 'border-bottom:1px solid #f3f4f6;' : '' }}transition:background .12s;"
+                                   onmouseover="this.style.background='#f8fafc'"
+                                   onmouseout="this.style.background=this.querySelector('input').checked?'#eff6ff':''">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="radio"
+                                           name="cycle_{{ $plan->id }}"
+                                           value="{{ $cy['cycle'] }}"
+                                           data-plan="{{ $plan->id }}"
+                                           data-total="{{ number_format($cy['total'], 2) }}"
+                                           data-monthly="{{ number_format($cy['monthly'], 2) }}"
+                                           data-label="{{ $cy['label'] }}"
+                                           data-cycle="{{ $cy['cycle'] }}"
+                                           onchange="updatePlanCycle({{ $plan->id }}, this)"
+                                           {{ $cy['cycle'] === 'yearly' ? 'checked' : '' }}
+                                           style="accent-color:#0066FF;width:15px;height:15px;">
+                                    <span style="font-size:.875rem;font-weight:500;color:#374151;">{{ $cy['label'] }}</span>
+                                    @if($cy['save'])
+                                    <span style="background:#d1fae5;color:#065f46;font-size:.68rem;font-weight:700;border-radius:20px;padding:1px 7px;">{{ $cy['save'] }}</span>
+                                    @endif
+                                </div>
+                                <span style="font-size:.875rem;font-weight:700;color:#0066FF;">@ $ {{ number_format($cy['total'], 2) }}</span>
+                            </label>
+                            @endforeach
+                        </div>
+
                         <form method="POST" action="{{ route('cart.add.public') }}" class="d-inline w-100">
                             @csrf
                             <input type="hidden" name="type"          value="hosting">
                             <input type="hidden" name="package_id"    value="{{ $plan->id }}">
                             <input type="hidden" name="name"          value="{{ $plan->name }}">
-                            <input type="hidden" name="billing_cycle" value="yearly">
+                            <input type="hidden" name="billing_cycle" id="cycle-input-{{ $plan->id }}" value="yearly">
                             <button type="submit" class="hplan-btn w-100">
-                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                                <i class="bi bi-cart-plus me-2"></i>Add to Cart &amp; Continue
                             </button>
                         </form>
                     </div>
@@ -577,6 +614,46 @@
             </div>
             @endforelse
         </div>
+
+        @push('scripts')
+        <script>
+        function updatePlanCycle(planId, radio) {
+            const total   = parseFloat(radio.dataset.total);
+            const monthly = parseFloat(radio.dataset.monthly);
+            const cycle   = radio.dataset.cycle;
+            const label   = radio.dataset.label;
+
+            // Update price
+            const priceEl = document.getElementById('price-display-' + planId);
+            if (priceEl) {
+                const span = priceEl.querySelector('[data-usd]');
+                const per  = priceEl.querySelector('.per');
+                if (span) { span.dataset.usd = total.toFixed(2); span.textContent = '$ ' + total.toFixed(2); }
+                if (per)  { per.textContent  = cycle === 'monthly' ? ' /mo' : (cycle === 'biennially' ? ' /2yr' : ' /yr'); }
+            }
+
+            // Update billed line
+            const billedEl = document.getElementById('billed-display-' + planId);
+            if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + ' · $' + monthly.toFixed(2) + '/mo';
+
+            // Update hidden cycle input
+            const inp = document.getElementById('cycle-input-' + planId);
+            if (inp) inp.value = cycle;
+
+            // Highlight selected row
+            document.querySelectorAll('[name="cycle_' + planId + '"]').forEach(r => {
+                r.closest('label').style.background = r.checked ? '#eff6ff' : '';
+            });
+        }
+
+        // Set initial highlight on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('[name^="cycle_"]:checked').forEach(r => {
+                r.closest('label').style.background = '#eff6ff';
+            });
+        });
+        </script>
+        @endpush
 
         <div class="text-center mt-4">
             <a href="{{ route('hosting.shared') }}" style="color:#0066FF;font-size:.9rem;text-decoration:none;font-weight:600;">
