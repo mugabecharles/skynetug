@@ -532,7 +532,19 @@
                             Billed ${{ number_format($plan->price_yearly, 2) }}/yr &nbsp;·&nbsp; ${{ number_format($plan->price_yearly / 12, 2) }}/mo
                         </div>
 
-                        <ul class="hplan-features">
+                        {{-- Expand Features toggle --}}
+                        <div class="mb-2">
+                            <button type="button"
+                                onclick="toggleFeatures({{ $plan->id }}, this)"
+                                style="background:none;border:none;padding:0;font-size:.875rem;font-weight:700;color:#374151;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <span style="width:22px;height:22px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:.75rem;" id="arrow-{{ $plan->id }}">
+                                    <i class="bi bi-chevron-down"></i>
+                                </span>
+                                Expand Feature
+                            </button>
+                        </div>
+
+                        <ul class="hplan-features" id="features-{{ $plan->id }}" style="display:none;">
                             <li><i class="bi bi-check2 hplan-check"></i>
                                 {{ $plan->disk_space_mb == 0 ? 'Unlimited' : number_format($plan->disk_space_mb / 1024, 0) . ' GB' }} Web Space
                             </li>
@@ -557,53 +569,74 @@
                             <li><i class="bi bi-check2 hplan-check"></i>30-Day Money Back Guarantee</li>
                         </ul>
 
-                        {{-- Billing cycle selector --}}
+                        {{-- Billing cycle dropdown + breakdown --}}
                         @php
-                            $cycles = [];
-                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'1 Month',   'cycle'=>'monthly',    'total'=>$plan->price_monthly,      'monthly'=>$plan->price_monthly,     'save'=>''];
-                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'3 Months',  'cycle'=>'monthly',    'total'=>$plan->price_monthly * 3,   'monthly'=>$plan->price_monthly,     'save'=>''];
-                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'6 Months',  'cycle'=>'monthly',    'total'=>$plan->price_monthly * 6,   'monthly'=>$plan->price_monthly,     'save'=>''];
-                            if ($plan->price_yearly > 0)     $cycles[] = ['label'=>'12 Months', 'cycle'=>'yearly',     'total'=>$plan->price_yearly,        'monthly'=>$plan->price_yearly/12,   'save'=>'Save 20%'];
-                            if ($plan->price_biennially > 0) $cycles[] = ['label'=>'24 Months', 'cycle'=>'biennially', 'total'=>$plan->price_biennially,    'monthly'=>$plan->price_biennially/24,'save'=>'Save 30%'];
+                            $cycles = [
+                                ['label'=>'1 Month',   'months'=>1,  'cycle'=>'monthly',    'total'=>$plan->price_monthly,        'save'=>''],
+                                ['label'=>'3 Months',  'months'=>3,  'cycle'=>'monthly',    'total'=>$plan->price_monthly*3,      'save'=>''],
+                                ['label'=>'6 Months',  'months'=>6,  'cycle'=>'monthly',    'total'=>$plan->price_monthly*6,      'save'=>''],
+                                ['label'=>'12 Months', 'months'=>12, 'cycle'=>'yearly',     'total'=>$plan->price_yearly,         'save'=>'Save 20%'],
+                                ['label'=>'24 Months', 'months'=>24, 'cycle'=>'biennially', 'total'=>$plan->price_biennially,     'save'=>'Save 30%'],
+                            ];
+                            $cycles = array_filter($cycles, fn($c) => $c['total'] > 0);
                         @endphp
-                        <div class="mb-3" style="border:1.5px solid #e8ecf0;border-radius:10px;overflow:hidden;">
-                            @foreach($cycles as $cy)
-                            <label class="d-flex align-items-center justify-content-between px-3 py-2"
-                                   style="cursor:pointer;margin:0;{{ !$loop->last ? 'border-bottom:1px solid #f3f4f6;' : '' }}transition:background .12s;"
-                                   onmouseover="this.style.background='#f8fafc'"
-                                   onmouseout="this.style.background=this.querySelector('input').checked?'#eff6ff':''">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="radio"
-                                           name="cycle_{{ $plan->id }}"
-                                           value="{{ $cy['cycle'] }}"
-                                           data-plan="{{ $plan->id }}"
-                                           data-total="{{ number_format($cy['total'], 2) }}"
-                                           data-monthly="{{ number_format($cy['monthly'], 2) }}"
-                                           data-label="{{ $cy['label'] }}"
-                                           data-cycle="{{ $cy['cycle'] }}"
-                                           onchange="updatePlanCycle({{ $plan->id }}, this)"
-                                           {{ $cy['cycle'] === 'yearly' ? 'checked' : '' }}
-                                           style="accent-color:#0066FF;width:15px;height:15px;">
-                                    <span style="font-size:.875rem;font-weight:500;color:#374151;">{{ $cy['label'] }}</span>
-                                    @if($cy['save'])
-                                    <span style="background:#d1fae5;color:#065f46;font-size:.68rem;font-weight:700;border-radius:20px;padding:1px 7px;">{{ $cy['save'] }}</span>
-                                    @endif
-                                </div>
-                                <span style="font-size:.875rem;font-weight:700;color:#0066FF;">@ $ {{ number_format($cy['total'], 2) }}</span>
-                            </label>
-                            @endforeach
-                        </div>
 
-                        <form method="POST" action="{{ route('cart.add.public') }}" class="d-inline w-100">
-                            @csrf
-                            <input type="hidden" name="type"          value="hosting">
-                            <input type="hidden" name="package_id"    value="{{ $plan->id }}">
-                            <input type="hidden" name="name"          value="{{ $plan->name }}">
-                            <input type="hidden" name="billing_cycle" id="cycle-input-{{ $plan->id }}" value="yearly">
-                            <button type="submit" class="hplan-btn w-100">
-                                <i class="bi bi-cart-plus me-2"></i>Add to Cart &amp; Continue
-                            </button>
-                        </form>
+                        <div class="mt-auto">
+                            <hr style="border-color:#f3f4f6;margin:0 0 14px;">
+
+                            {{-- Dropdown --}}
+                            <select id="cycle-select-{{ $plan->id }}"
+                                    onchange="showCycleBreakdown({{ $plan->id }}, this)"
+                                    style="width:100%;border:1.5px solid #e8ecf0;border-radius:10px;padding:12px 16px;font-size:.9rem;color:#6B7280;background:#fff;appearance:none;-webkit-appearance:none;cursor:pointer;margin-bottom:0;font-weight:500;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path fill=%22%236B7280%22 d=%22M1 1l5 5 5-5%22 stroke=%22%236B7280%22 stroke-width=%221.5%22 fill=%22none%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;">
+                                <option value="" disabled selected style="color:#9CA3AF;">Choose preferred billing cycle</option>
+                                @foreach($cycles as $cy)
+                                <option value="{{ $cy['cycle'] }}"
+                                        data-label="{{ $cy['label'] }}"
+                                        data-total="{{ number_format($cy['total'], 2) }}"
+                                        data-cycle="{{ $cy['cycle'] }}"
+                                        data-months="{{ $cy['months'] }}"
+                                        data-save="{{ $cy['save'] }}">
+                                    {{ $cy['label'] }} &nbsp;&mdash;&nbsp; @ $ {{ number_format($cy['total'], 2) }}{{ $cy['save'] ? ' ('.$cy['save'].')' : '' }}
+                                </option>
+                                @endforeach
+                            </select>
+
+                            {{-- Breakdown table — hidden until selection --}}
+                            <div id="breakdown-{{ $plan->id }}" style="display:none;border:1.5px solid #e8ecf0;border-radius:10px;margin-top:12px;overflow:hidden;">
+                                @foreach($cycles as $cy)
+                                <div class="cycle-row-{{ $plan->id }}"
+                                     data-cycle="{{ $cy['cycle'] }}"
+                                     data-months="{{ $cy['months'] }}"
+                                     style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;{{ !$loop->last ? 'border-bottom:1px solid #f3f4f6;' : '' }}transition:background .15s;cursor:pointer;"
+                                     onclick="selectFromBreakdown({{ $plan->id }}, '{{ $cy['cycle'] }}', {{ $cy['months'] }})">
+                                    <div style="font-size:.9rem;font-weight:600;color:#374151;">
+                                        {{ $cy['label'] }}
+                                        @if($cy['save'])
+                                        <span style="background:#d1fae5;color:#065f46;font-size:.68rem;font-weight:700;border-radius:20px;padding:2px 8px;margin-left:6px;">{{ $cy['save'] }}</span>
+                                        @endif
+                                    </div>
+                                    <div style="font-size:.9rem;font-weight:700;color:#0066FF;">
+                                        @ $ {{ number_format($cy['total'], 2) }}
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <form method="POST" action="{{ route('cart.add.public') }}" id="form-{{ $plan->id }}" style="margin-top:12px;display:none;">
+                                @csrf
+                                <input type="hidden" name="type"          value="hosting">
+                                <input type="hidden" name="package_id"    value="{{ $plan->id }}">
+                                <input type="hidden" name="name"          value="{{ $plan->name }}">
+                                <input type="hidden" name="billing_cycle" id="cycle-input-{{ $plan->id }}" value="">
+                                <button type="submit"
+                                        style="width:100%;background:#0A0F1E;color:#fff;border:none;border-radius:10px;padding:14px 18px;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;"
+                                        onmouseover="this.style.background='#1a2035'"
+                                        onmouseout="this.style.background='#0A0F1E'">
+                                    <span>Add to Cart &amp; Continue</span>
+                                    <i class="bi bi-basket" style="font-size:1.1rem;"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -617,41 +650,82 @@
 
         @push('scripts')
         <script>
-        function updatePlanCycle(planId, radio) {
-            const total   = parseFloat(radio.dataset.total);
-            const monthly = parseFloat(radio.dataset.monthly);
-            const cycle   = radio.dataset.cycle;
-            const label   = radio.dataset.label;
+        // Called when dropdown changes — shows breakdown table
+        function showCycleBreakdown(planId, select) {
+            const breakdown = document.getElementById('breakdown-' + planId);
+            const form      = document.getElementById('form-' + planId);
+            const cycleInput= document.getElementById('cycle-input-' + planId);
+            const selected  = select.options[select.selectedIndex];
 
-            // Update price
+            if (!selected.value) return;
+
+            // Show breakdown table
+            breakdown.style.display = 'block';
+
+            // Highlight the selected row in breakdown
+            document.querySelectorAll('.cycle-row-' + planId).forEach(row => {
+                if (row.dataset.cycle === selected.value && row.dataset.months === selected.dataset.months) {
+                    row.style.background = '#eff6ff';
+                    row.style.borderLeft = '3px solid #0066FF';
+                } else {
+                    row.style.background = '';
+                    row.style.borderLeft = '';
+                }
+            });
+
+            // Set the cycle on the form
+            cycleInput.value = selected.value;
+
+            // Show the Add to Cart button
+            form.style.display = 'block';
+
+            // Update price display
+            updatePriceDisplay(planId, parseFloat(selected.dataset.total), selected.value);
+        }
+
+        // Called when clicking a row in the breakdown table
+        function selectFromBreakdown(planId, cycle, months) {
+            const cycleInput = document.getElementById('cycle-input-' + planId);
+            const form       = document.getElementById('form-' + planId);
+            const select     = document.getElementById('cycle-select-' + planId);
+
+            // Set cycle on form
+            cycleInput.value = cycle;
+
+            // Highlight the clicked row
+            document.querySelectorAll('.cycle-row-' + planId).forEach(row => {
+                if (row.dataset.cycle === cycle && parseInt(row.dataset.months) === months) {
+                    row.style.background = '#eff6ff';
+                    row.style.borderLeft = '3px solid #0066FF';
+                } else {
+                    row.style.background = '';
+                    row.style.borderLeft = '';
+                }
+            });
+
+            // Sync dropdown to match
+            for (let opt of select.options) {
+                if (opt.value === cycle && opt.dataset.months == months) {
+                    opt.selected = true;
+                    updatePriceDisplay(planId, parseFloat(opt.dataset.total), cycle);
+                    break;
+                }
+            }
+
+            form.style.display = 'block';
+        }
+
+        function updatePriceDisplay(planId, total, cycle) {
             const priceEl = document.getElementById('price-display-' + planId);
+            const billedEl= document.getElementById('billed-display-' + planId);
             if (priceEl) {
                 const span = priceEl.querySelector('[data-usd]');
                 const per  = priceEl.querySelector('.per');
                 if (span) { span.dataset.usd = total.toFixed(2); span.textContent = '$ ' + total.toFixed(2); }
-                if (per)  { per.textContent  = cycle === 'monthly' ? ' /mo' : (cycle === 'biennially' ? ' /2yr' : ' /yr'); }
+                if (per)  { per.textContent  = cycle === 'monthly' ? ' /mo' : cycle === 'biennially' ? ' /2yr' : ' /yr'; }
             }
-
-            // Update billed line
-            const billedEl = document.getElementById('billed-display-' + planId);
-            if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + ' · $' + monthly.toFixed(2) + '/mo';
-
-            // Update hidden cycle input
-            const inp = document.getElementById('cycle-input-' + planId);
-            if (inp) inp.value = cycle;
-
-            // Highlight selected row
-            document.querySelectorAll('[name="cycle_' + planId + '"]').forEach(r => {
-                r.closest('label').style.background = r.checked ? '#eff6ff' : '';
-            });
+            if (billedEl) billedEl.textContent = 'Total: $' + total.toFixed(2);
         }
-
-        // Set initial highlight on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('[name^="cycle_"]:checked').forEach(r => {
-                r.closest('label').style.background = '#eff6ff';
-            });
-        });
         </script>
         @endpush
 
