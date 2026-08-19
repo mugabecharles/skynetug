@@ -524,12 +524,12 @@
                         <div class="hplan-name">{{ $plan->name }}</div>
                         <div class="hplan-desc">{{ $plan->description }}</div>
 
-                        {{-- Price display — updates when cycle is selected --}}
+                        {{-- Price display — shows monthly rate, billed yearly --}}
                         <div class="hplan-price" id="price-display-{{ $plan->id }}">
-                            <span data-usd="{{ number_format($plan->price_yearly, 2) }}">$ {{ number_format($plan->price_yearly, 2) }}</span><span class="per"> /yr</span>
+                            <span data-usd="{{ number_format($plan->price_yearly / 12, 2) }}">$ {{ number_format($plan->price_yearly / 12, 2) }}</span><span class="per"> /mo</span>
                         </div>
                         <div class="hplan-billed" id="billed-display-{{ $plan->id }}">
-                            Billed ${{ number_format($plan->price_yearly, 2) }}/yr &nbsp;·&nbsp; ${{ number_format($plan->price_yearly / 12, 2) }}/mo
+                            Billed ${{ number_format($plan->price_yearly, 2) }}/yr
                         </div>
 
                         <ul class="hplan-features">
@@ -632,41 +632,75 @@
 
         @push('scripts')
         <script>
-        function updatePlanCycle(planId, radio) {
-            const total   = parseFloat(radio.dataset.total);
-            const monthly = parseFloat(radio.dataset.monthly);
-            const cycle   = radio.dataset.cycle;
-            const label   = radio.dataset.label;
+        // Called when dropdown changes — shows breakdown table
+        function showCycleBreakdown(planId, select) {
+            const breakdown = document.getElementById('breakdown-' + planId);
+            const form      = document.getElementById('form-' + planId);
+            const cycleInput= document.getElementById('cycle-input-' + planId);
+            const selected  = select.options[select.selectedIndex];
+            if (!selected.value) return;
 
-            // Update price
-            const priceEl = document.getElementById('price-display-' + planId);
-            if (priceEl) {
-                const span = priceEl.querySelector('[data-usd]');
-                const per  = priceEl.querySelector('.per');
-                if (span) { span.dataset.usd = total.toFixed(2); span.textContent = '$ ' + total.toFixed(2); }
-                if (per)  { per.textContent  = cycle === 'monthly' ? ' /mo' : (cycle === 'biennially' ? ' /2yr' : ' /yr'); }
-            }
+            breakdown.style.display = 'block';
 
-            // Update billed line
-            const billedEl = document.getElementById('billed-display-' + planId);
-            if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + ' · $' + monthly.toFixed(2) + '/mo';
-
-            // Update hidden cycle input
-            const inp = document.getElementById('cycle-input-' + planId);
-            if (inp) inp.value = cycle;
-
-            // Highlight selected row
-            document.querySelectorAll('[name="cycle_' + planId + '"]').forEach(r => {
-                r.closest('label').style.background = r.checked ? '#eff6ff' : '';
+            document.querySelectorAll('.cycle-row-' + planId).forEach(row => {
+                const match = row.dataset.cycle === selected.value && row.dataset.months === selected.dataset.months;
+                row.style.background  = match ? '#eff6ff' : '';
+                row.style.borderLeft  = match ? '3px solid #0066FF' : '';
             });
+
+            cycleInput.value    = selected.value;
+            form.style.display  = 'block';
+            updatePriceDisplay(planId, parseFloat(selected.dataset.total), selected.value);
         }
 
-        // Set initial highlight on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('[name^="cycle_"]:checked').forEach(r => {
-                r.closest('label').style.background = '#eff6ff';
+        function selectFromBreakdown(planId, cycle, months) {
+            const cycleInput = document.getElementById('cycle-input-' + planId);
+            const form       = document.getElementById('form-' + planId);
+            const select     = document.getElementById('cycle-select-' + planId);
+
+            cycleInput.value = cycle;
+
+            document.querySelectorAll('.cycle-row-' + planId).forEach(row => {
+                const match = row.dataset.cycle === cycle && parseInt(row.dataset.months) === months;
+                row.style.background = match ? '#eff6ff' : '';
+                row.style.borderLeft = match ? '3px solid #0066FF' : '';
             });
-        });
+
+            for (let opt of select.options) {
+                if (opt.value === cycle && opt.dataset.months == months) {
+                    opt.selected = true;
+                    updatePriceDisplay(planId, parseFloat(opt.dataset.total), cycle);
+                    break;
+                }
+            }
+            form.style.display = 'block';
+        }
+
+        function updatePriceDisplay(planId, total, cycle) {
+            const priceEl  = document.getElementById('price-display-' + planId);
+            const billedEl = document.getElementById('billed-display-' + planId);
+            if (!priceEl) return;
+
+            const span = priceEl.querySelector('[data-usd]');
+            const per  = priceEl.querySelector('.per');
+
+            if (cycle === 'yearly') {
+                const mo = (total / 12).toFixed(2);
+                if (span) { span.dataset.usd = mo; span.textContent = '$ ' + mo; }
+                if (per)  per.textContent = ' /mo';
+                if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + '/yr';
+            } else if (cycle === 'biennially') {
+                const mo = (total / 24).toFixed(2);
+                if (span) { span.dataset.usd = mo; span.textContent = '$ ' + mo; }
+                if (per)  per.textContent = ' /mo';
+                if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + '/2yr';
+            } else {
+                // monthly — total IS the monthly price
+                if (span) { span.dataset.usd = total.toFixed(2); span.textContent = '$ ' + total.toFixed(2); }
+                if (per)  per.textContent = ' /mo';
+                if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + '/mo';
+            }
+        }
         </script>
         @endpush
 
