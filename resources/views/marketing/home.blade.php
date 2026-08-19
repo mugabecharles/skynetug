@@ -474,7 +474,7 @@
         .hplan-features {
             list-style: none;
             padding: 0;
-            margin: 0 0 1.75rem;
+            margin: 0 0 .75rem;
             flex: 1;
         }
         .hplan-features li {
@@ -588,7 +588,7 @@
                         @endphp
 
                         <div class="mt-auto">
-                            <hr style="border-color:#f3f4f6;margin:0 0 14px;">
+                            <hr style="border-color:#f3f4f6;margin:0 0 8px;">
                             <select id="cycle-select-{{ $plan->id }}"
                                     onchange="updatePlanCycleSelect({{ $plan->id }}, this)"
                                     style="width:100%;border:1.5px solid #e8ecf0;border-radius:10px;padding:12px 16px;font-size:.9rem;color:#374151;background:#fff url('data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\' viewBox=\'0 0 12 8\'><path fill=\'%236B7280\' d=\'M1 1l5 5 5-5\'/></svg>') no-repeat right 14px center;appearance:none;-webkit-appearance:none;cursor:pointer;margin-bottom:12px;font-weight:500;">
