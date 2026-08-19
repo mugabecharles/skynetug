@@ -533,28 +533,48 @@
                         </div>
 
                         <ul class="hplan-features">
-                            <li><i class="bi bi-check2 hplan-check"></i>
-                                {{ $plan->disk_space_mb == 0 ? 'Unlimited' : number_format($plan->disk_space_mb / 1024, 0) . ' GB' }} Web Space
+                            {{-- DB fields only — no hardcoded items --}}
+                            @if($plan->disk_space_mb > 0)
+                            <li><i class="bi bi-hdd hplan-check"></i>
+                                {{ $plan->disk_space_mb == 0 ? 'Unlimited' : number_format($plan->disk_space_mb / 1024, 0) . ' GB' }} Storage
                             </li>
-                            <li><i class="bi bi-check2 hplan-check"></i>Unlimited Bandwidth</li>
-                            <li><i class="bi bi-check2 hplan-check"></i>
+                            @endif
+                            @if($plan->bandwidth_mb == 0)
+                            <li><i class="bi bi-arrow-down-up hplan-check"></i>Unlimited Bandwidth</li>
+                            @elseif($plan->bandwidth_mb > 0)
+                            <li><i class="bi bi-arrow-down-up hplan-check"></i>{{ number_format($plan->bandwidth_mb / 1024, 0) }} GB Bandwidth</li>
+                            @endif
+                            @if($plan->email_accounts !== null)
+                            <li><i class="bi bi-envelope hplan-check"></i>
                                 {{ $plan->email_accounts == 0 ? 'Unlimited' : $plan->email_accounts }} Email Accounts
                             </li>
+                            @endif
                             @if($plan->ssl_included)
-                            <li><i class="bi bi-check2 hplan-check"></i>Free SSL Certificate</li>
+                            <li><i class="bi bi-shield-check hplan-check"></i>Free SSL Certificate</li>
                             @endif
                             @if($plan->softaculous_included)
-                            <li><i class="bi bi-check2 hplan-check"></i>1-Click WordPress Install</li>
+                            <li><i class="bi bi-lightning hplan-check"></i>1-Click WordPress Install</li>
                             @endif
                             @if($plan->backup_included)
-                            <li><i class="bi bi-check2 hplan-check"></i>Free Daily Backups</li>
+                            <li><i class="bi bi-cloud-check hplan-check"></i>Free Daily Backups</li>
                             @endif
+                            @if($plan->addon_domains > 0)
+                            <li><i class="bi bi-check2 hplan-check"></i>{{ $plan->addon_domains }} Addon Domain{{ $plan->addon_domains > 1 ? 's' : '' }}</li>
+                            @endif
+                            @if($plan->subdomains == 0)
+                            <li><i class="bi bi-check2 hplan-check"></i>Unlimited Subdomains</li>
+                            @elseif($plan->subdomains > 0)
+                            <li><i class="bi bi-check2 hplan-check"></i>{{ $plan->subdomains }} Subdomains</li>
+                            @endif
+                            @if($plan->databases > 0)
+                            <li><i class="bi bi-database hplan-check"></i>{{ $plan->databases == 0 ? 'Unlimited' : $plan->databases }} Database{{ $plan->databases > 1 ? 's' : '' }}</li>
+                            @endif
+                            {{-- Custom features from the features JSON field --}}
                             @foreach((array) $plan->features as $feat)
+                            @if(!empty(trim($feat)))
                             <li><i class="bi bi-check2 hplan-check"></i>{{ $feat }}</li>
+                            @endif
                             @endforeach
-                            <li><i class="bi bi-check2 hplan-check"></i>cPanel Control Panel</li>
-                            <li><i class="bi bi-check2 hplan-check"></i>24/7/365 Support</li>
-                            <li><i class="bi bi-check2 hplan-check"></i>30-Day Money Back Guarantee</li>
                         </ul>
 
                         {{-- Billing cycle dropdown --}}
