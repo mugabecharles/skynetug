@@ -12,19 +12,8 @@ class HomeController extends Controller
     {
         $featuredPackages = HostingPackage::where('is_active', true)
             ->where('type', 'shared')
-            ->where('is_featured', true)
             ->orderBy('sort_order')
-            ->take(4)
             ->get();
-
-        // If no featured packages, fall back to first 4 active shared packages
-        if ($featuredPackages->isEmpty()) {
-            $featuredPackages = HostingPackage::where('is_active', true)
-                ->where('type', 'shared')
-                ->orderBy('sort_order')
-                ->take(4)
-                ->get();
-        }
 
         $announcements = Announcement::where('status', 'published')
             ->latest('published_at')

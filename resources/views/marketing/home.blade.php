@@ -515,9 +515,9 @@
             @forelse($featuredPackages as $plan)
             <div class="col-md-6 col-lg-3">
                 <div style="padding-top:22px;">
-                    <div class="hplan-card {{ $plan->is_featured ? 'popular' : '' }}">
+                    <div class="hplan-card {{ $plan->slug === 'business' ? 'popular' : '' }}">
 
-                        @if($plan->is_featured)
+                        @if($plan->slug === 'business')
                         <div class="hplan-badge">⭐ Most Popular</div>
                         @endif
 
