@@ -611,11 +611,11 @@
                                 <input type="hidden" name="name"          value="{{ $plan->name }}">
                                 <input type="hidden" name="billing_cycle" id="cycle-input-{{ $plan->id }}" value="yearly">
                                 <button type="submit"
-                                        style="width:100%;background:#0A0F1E;color:#fff;border:none;border-radius:10px;padding:14px;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;"
-                                        onmouseover="this.style.background='#1a2035'"
-                                        onmouseout="this.style.background='#0A0F1E'">
-                                    <span>Add to Cart &amp; Continue</span>
-                                    <i class="bi bi-basket" style="font-size:1.1rem;"></i>
+                                        style="width:100%;background:#0066FF;color:#fff;border:none;border-radius:10px;padding:13px 18px;font-size:.9rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;"
+                                        onmouseover="this.style.background='#0050CC'"
+                                        onmouseout="this.style.background='#0066FF'">
+                                    <span>Add to Cart</span>
+                                    <i class="bi bi-basket" style="font-size:1rem;"></i>
                                 </button>
                             </form>
                         </div>
