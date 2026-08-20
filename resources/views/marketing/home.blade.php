@@ -606,28 +606,7 @@
                                 @endforeach
                             </select>
 
-                            {{-- Breakdown rows — hidden until selection --}}
-                            <div id="breakdown-{{ $plan->id }}" style="display:none;border:1.5px solid #e8ecf0;border-radius:10px;margin-top:8px;overflow:hidden;">
-                                @foreach($cycles as $cy)
-                                <div class="cycle-row-{{ $plan->id }}"
-                                     data-cycle="{{ $cy['cycle'] }}"
-                                     data-months="{{ $cy['months'] }}"
-                                     style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;{{ !$loop->last ? 'border-bottom:1px solid #f3f4f6;' : '' }}cursor:pointer;"
-                                     onclick="selectFromBreakdown({{ $plan->id }}, '{{ $cy['cycle'] }}', {{ $cy['months'] }})">
-                                    <div style="font-size:.875rem;font-weight:600;color:#374151;">
-                                        {{ $cy['label'] }}
-                                        @if($cy['save'])
-                                        <span style="background:#d1fae5;color:#065f46;font-size:.68rem;font-weight:700;border-radius:20px;padding:2px 8px;margin-left:6px;">{{ $cy['save'] }}</span>
-                                        @endif
-                                    </div>
-                                    <span class="breakdown-price-{{ $plan->id }}"
-                                          data-usd="{{ number_format($cy['total'], 2) }}"
-                                          style="font-size:.875rem;font-weight:700;color:#0066FF;">
-                                        @ $ {{ number_format($cy['total'], 2) }}
-                                    </span>
-                                </div>
-                                @endforeach
-                            </div>
+                            {{-- Breakdown rows removed — dropdown only --}}
 
                             <form method="POST" action="{{ route('cart.add.public') }}" id="form-{{ $plan->id }}" style="margin-top:8px;display:none;">
                                 @csrf
@@ -658,21 +637,10 @@
         @push('scripts')
         <script>
         function showCycleBreakdown(planId, select) {
-            const breakdown  = document.getElementById('breakdown-' + planId);
             const form       = document.getElementById('form-' + planId);
             const cycleInput = document.getElementById('cycle-input-' + planId);
             const selected   = select.options[select.selectedIndex];
             if (!selected.value) return;
-
-            // Show breakdown
-            breakdown.style.display = 'block';
-
-            // Highlight selected row
-            document.querySelectorAll('.cycle-row-' + planId).forEach(row => {
-                const match = row.dataset.cycle === selected.value && row.dataset.months == selected.dataset.months;
-                row.style.background = match ? '#eff6ff' : '';
-                row.style.borderLeft = match ? '3px solid #0066FF' : '';
-            });
 
             cycleInput.value   = selected.value;
             form.style.display = 'block';
@@ -680,26 +648,7 @@
         }
 
         function selectFromBreakdown(planId, cycle, months) {
-            const cycleInput = document.getElementById('cycle-input-' + planId);
-            const form       = document.getElementById('form-' + planId);
-            const select     = document.getElementById('cycle-select-' + planId);
-
-            cycleInput.value = cycle;
-
-            document.querySelectorAll('.cycle-row-' + planId).forEach(row => {
-                const match = row.dataset.cycle === cycle && parseInt(row.dataset.months) === months;
-                row.style.background = match ? '#eff6ff' : '';
-                row.style.borderLeft = match ? '3px solid #0066FF' : '';
-            });
-
-            for (let opt of select.options) {
-                if (opt.value === cycle && opt.dataset.months == months) {
-                    opt.selected = true;
-                    updatePriceDisplay(planId, parseFloat(opt.dataset.total), cycle);
-                    break;
-                }
-            }
-            form.style.display = 'block';
+            // kept for compatibility — no longer used
         }
 
         function updatePriceDisplay(planId, usdTotal, cycle) {
