@@ -577,14 +577,61 @@
                             @endforeach
                         </ul>
 
+                        {{-- Custom billing cycle dropdown --}}
+                        @php
+                            $cycles = array_values(array_filter([
+                                ['label'=>'1 Month',   'months'=>1,  'cycle'=>'monthly',     'total'=>(float)$plan->price_monthly,     'save'=>null],
+                                ['label'=>'3 Months',  'months'=>3,  'cycle'=>'quarterly',   'total'=>(float)($plan->price_quarterly ?? 0),  'save'=>null],
+                                ['label'=>'6 Months',  'months'=>6,  'cycle'=>'semiannual',  'total'=>(float)($plan->price_semiannual ?? 0), 'save'=>null],
+                                ['label'=>'12 Months', 'months'=>12, 'cycle'=>'yearly',      'total'=>(float)$plan->price_yearly,      'save'=>'Save 20%'],
+                                ['label'=>'24 Months', 'months'=>24, 'cycle'=>'biennially',  'total'=>(float)$plan->price_biennially,  'save'=>'Save 30%'],
+                                ['label'=>'36 Months', 'months'=>36, 'cycle'=>'triennial',   'total'=>(float)($plan->price_triennial ?? 0),  'save'=>'Save 40%'],
+                            ], fn($c) => $c['total'] > 0));
+                        @endphp
+
                         <div class="mt-auto">
-                            <hr style="border-color:#f3f4f6;margin:0 0 8px;">
-                            <form method="POST" action="{{ route('cart.add.public') }}">
+                            <hr style="border-color:#f3f4f6;margin:0 0 10px;">
+
+                            {{-- Dropdown trigger --}}
+                            <div style="position:relative;" id="cycle-wrap-{{ $plan->id }}">
+                                <button type="button"
+                                        onclick="toggleCycleDropdown({{ $plan->id }})"
+                                        id="cycle-trigger-{{ $plan->id }}"
+                                        style="width:100%;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 16px;font-size:.88rem;color:#9CA3AF;background:#fff;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:500;transition:border-color .15s;">
+                                    <span id="cycle-label-{{ $plan->id }}">Choose preferred billing cycle</span>
+                                    <i class="bi bi-chevron-down" id="cycle-arrow-{{ $plan->id }}" style="font-size:.75rem;transition:transform .2s;"></i>
+                                </button>
+
+                                {{-- Dropdown panel --}}
+                                <div id="cycle-panel-{{ $plan->id }}"
+                                     style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid #e8ecf0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:100;overflow:hidden;">
+                                    @foreach($cycles as $cy)
+                                    <div onclick="selectCycle({{ $plan->id }}, '{{ $cy['cycle'] }}', {{ $cy['months'] }}, {{ $cy['total'] }}, '{{ $cy['label'] }}')"
+                                         style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;{{ !$loop->last ? 'border-bottom:1px solid #f3f4f6;' : '' }}transition:background .12s;"
+                                         onmouseover="this.style.background='#f8fafc'"
+                                         onmouseout="this.style.background=''">
+                                        <div style="font-size:.875rem;font-weight:600;color:#374151;">
+                                            {{ $cy['label'] }}
+                                            @if($cy['save'])
+                                            <span style="background:#d1fae5;color:#065f46;font-size:.68rem;font-weight:700;border-radius:20px;padding:2px 8px;margin-left:6px;">{{ $cy['save'] }}</span>
+                                            @endif
+                                        </div>
+                                        <span data-usd="{{ number_format($cy['total'], 2) }}"
+                                              style="font-size:.875rem;font-weight:700;color:#0066FF;">
+                                            @ $ {{ number_format($cy['total'], 2) }}
+                                        </span>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            {{-- Add to Cart form — shown after selection --}}
+                            <form method="POST" action="{{ route('cart.add.public') }}" id="form-{{ $plan->id }}" style="margin-top:8px;display:none;">
                                 @csrf
                                 <input type="hidden" name="type"          value="hosting">
                                 <input type="hidden" name="package_id"    value="{{ $plan->id }}">
                                 <input type="hidden" name="name"          value="{{ $plan->name }}">
-                                <input type="hidden" name="billing_cycle" value="yearly">
+                                <input type="hidden" name="billing_cycle" id="cycle-input-{{ $plan->id }}" value="">
                                 <button type="submit"
                                         style="width:100%;background:#0066FF;color:#fff;border:none;border-radius:10px;padding:13px 18px;font-size:.9rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;"
                                         onmouseover="this.style.background='#0050CC'"

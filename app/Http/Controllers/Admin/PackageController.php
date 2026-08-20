@@ -53,8 +53,11 @@ class PackageController extends Controller
             'type'                 => ['required', 'in:shared,wordpress,vps,email,ssl,backup,design'],
             'description'          => ['nullable', 'string'],
             'price_monthly'        => ['required', 'numeric', 'min:0'],
+            'price_quarterly'      => ['nullable', 'numeric', 'min:0'],
+            'price_semiannual'     => ['nullable', 'numeric', 'min:0'],
             'price_yearly'         => ['required', 'numeric', 'min:0'],
             'price_biennially'     => ['nullable', 'numeric', 'min:0'],
+            'price_triennial'      => ['nullable', 'numeric', 'min:0'],
             'disk_space_mb'        => ['required', 'integer', 'min:0'],
             'email_accounts'       => ['nullable', 'integer', 'min:0'],
             'databases'            => ['nullable', 'integer', 'min:0'],
@@ -73,7 +76,10 @@ class PackageController extends Controller
         $data['ssl_included']          = $request->boolean('ssl_included');
         $data['softaculous_included']  = $request->boolean('softaculous_included');
         $data['backup_included']       = $request->boolean('backup_included');
+        $data['price_quarterly']       = $data['price_quarterly'] ?? 0;
+        $data['price_semiannual']      = $data['price_semiannual'] ?? 0;
         $data['price_biennially']      = $data['price_biennially'] ?? 0;
+        $data['price_triennial']       = $data['price_triennial'] ?? 0;
         $data['email_accounts']        = $data['email_accounts'] ?? 0;
         $data['databases']             = $data['databases'] ?? 0;
         $data['bandwidth_mb']          = 0;

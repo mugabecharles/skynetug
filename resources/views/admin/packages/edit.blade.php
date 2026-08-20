@@ -37,12 +37,24 @@
                 <input type="number" name="price_monthly" class="form-control" value="{{ old('price_monthly',$package->price_monthly??0) }}" min="0" step="0.01">
             </div>
             <div class="col-md-4">
+                <label class="form-label fw-semibold small">Quarterly Price ($) <span class="text-muted">3 months</span></label>
+                <input type="number" name="price_quarterly" class="form-control" value="{{ old('price_quarterly',$package->price_quarterly??0) }}" min="0" step="0.01">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small">Semi-Annual Price ($) <span class="text-muted">6 months</span></label>
+                <input type="number" name="price_semiannual" class="form-control" value="{{ old('price_semiannual',$package->price_semiannual??0) }}" min="0" step="0.01">
+            </div>
+            <div class="col-md-4">
                 <label class="form-label fw-semibold small">Yearly Price ($)</label>
                 <input type="number" name="price_yearly" class="form-control" value="{{ old('price_yearly',$package->price_yearly??0) }}" min="0" step="0.01">
             </div>
             <div class="col-md-4">
-                <label class="form-label fw-semibold small">Biennial Price ($)</label>
+                <label class="form-label fw-semibold small">Biennial Price ($) <span class="text-muted">24 months</span></label>
                 <input type="number" name="price_biennially" class="form-control" value="{{ old('price_biennially',$package->price_biennially??0) }}" min="0" step="0.01">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small">Triennial Price ($) <span class="text-muted">36 months</span></label>
+                <input type="number" name="price_triennial" class="form-control" value="{{ old('price_triennial',$package->price_triennial??0) }}" min="0" step="0.01">
             </div>
             <div class="col-md-4">
                 <label class="form-label fw-semibold small">Disk Space (MB) <span class="text-muted">0=Unlimited</span></label>

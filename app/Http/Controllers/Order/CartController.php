@@ -35,7 +35,7 @@ class CartController extends Controller
         $request->validate([
             'type'          => ['required', 'in:hosting,domain,ssl,email'],
             'package_id'    => ['nullable', 'exists:hosting_packages,id'],
-            'billing_cycle' => ['required', 'in:monthly,yearly,biennially'],
+            'billing_cycle' => ['required', 'in:monthly,quarterly,semiannual,yearly,biennially,triennial'],
             'domain'        => ['nullable', 'string', 'max:100'],
             'price'         => ['nullable', 'numeric', 'min:0'],
             'name'          => ['required', 'string'],
@@ -122,7 +122,7 @@ class CartController extends Controller
         $request->validate([
             'type'          => ['required', 'in:hosting,domain,ssl,email'],
             'package_id'    => ['nullable', 'exists:hosting_packages,id'],
-            'billing_cycle' => ['required', 'in:monthly,yearly,biennially'],
+            'billing_cycle' => ['required', 'in:monthly,quarterly,semiannual,yearly,biennially,triennial'],
             'domain'        => ['nullable', 'string', 'max:100'],
             'price'         => ['nullable', 'numeric', 'min:0'],
             'name'          => ['required', 'string'],
@@ -177,7 +177,10 @@ class CartController extends Controller
             $pkg   = HostingPackage::findOrFail($item['package_id']);
             $price = match ($cycle) {
                 'monthly'    => (float) $pkg->price_monthly,
+                'quarterly'  => (float) ($pkg->price_quarterly ?? $pkg->price_monthly * 3),
+                'semiannual' => (float) ($pkg->price_semiannual ?? $pkg->price_monthly * 6),
                 'biennially' => (float) $pkg->price_biennially,
+                'triennial'  => (float) ($pkg->price_triennial ?? $pkg->price_yearly * 3),
                 default      => (float) $pkg->price_yearly,
             };
             $item['billing_cycle'] = $cycle;
@@ -266,7 +269,10 @@ class CartController extends Controller
             $cycle = $request->billing_cycle ?? 'yearly';
             $price = match ($cycle) {
                 'monthly'    => (float) $pkg->price_monthly,
+                'quarterly'  => (float) ($pkg->price_quarterly ?? $pkg->price_monthly * 3),
+                'semiannual' => (float) ($pkg->price_semiannual ?? $pkg->price_monthly * 6),
                 'biennially' => (float) $pkg->price_biennially,
+                'triennial'  => (float) ($pkg->price_triennial ?? $pkg->price_yearly * 3),
                 default      => (float) $pkg->price_yearly,
             };
             return [

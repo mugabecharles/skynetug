@@ -47,8 +47,11 @@ class HostingPackage extends Model
         'type',
         'description',
         'price_monthly',
+        'price_quarterly',
+        'price_semiannual',
         'price_yearly',
         'price_biennially',
+        'price_triennial',
         'disk_space_mb',
         'bandwidth_mb',
         'email_accounts',
@@ -78,8 +81,11 @@ class HostingPackage extends Model
         'is_featured'           => 'boolean',
         'is_active'             => 'boolean',
         'price_monthly'         => 'decimal:2',
+        'price_quarterly'       => 'decimal:2',
+        'price_semiannual'      => 'decimal:2',
         'price_yearly'          => 'decimal:2',
         'price_biennially'      => 'decimal:2',
+        'price_triennial'       => 'decimal:2',
     ];
 
     // -------------------------------------------------------------------------
