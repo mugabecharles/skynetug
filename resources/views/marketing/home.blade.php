@@ -577,43 +577,14 @@
                             @endforeach
                         </ul>
 
-                        {{-- Billing cycle dropdown + breakdown --}}
-                        @php
-                            $cycles = array_values(array_filter([
-                                ['label'=>'1 Month',   'months'=>1,  'cycle'=>'monthly',    'total'=>(float)$plan->price_monthly,       'save'=>''],
-                                ['label'=>'3 Months',  'months'=>3,  'cycle'=>'monthly',    'total'=>(float)$plan->price_monthly*3,     'save'=>''],
-                                ['label'=>'6 Months',  'months'=>6,  'cycle'=>'monthly',    'total'=>(float)$plan->price_monthly*6,     'save'=>''],
-                                ['label'=>'12 Months', 'months'=>12, 'cycle'=>'yearly',     'total'=>(float)$plan->price_yearly,        'save'=>'Save 20%'],
-                                ['label'=>'24 Months', 'months'=>24, 'cycle'=>'biennially', 'total'=>(float)$plan->price_biennially,    'save'=>'Save 30%'],
-                            ], fn($c) => $c['total'] > 0));
-                        @endphp
-
                         <div class="mt-auto">
                             <hr style="border-color:#f3f4f6;margin:0 0 8px;">
-
-                            <select id="cycle-select-{{ $plan->id }}"
-                                    onchange="showCycleBreakdown({{ $plan->id }}, this)"
-                                    style="width:100%;border:1.5px solid #e8ecf0;border-radius:10px;padding:10px 14px;font-size:.88rem;color:#6B7280;background:#fff;appearance:none;cursor:pointer;font-weight:500;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22><path fill=%22none%22 stroke=%22%236B7280%22 stroke-width=%221.5%22 d=%22M1 1l5 5 5-5%22/></svg>');background-repeat:no-repeat;background-position:right 12px center;">
-                                <option value="" disabled selected style="color:#9CA3AF;">Choose preferred billing cycle</option>
-                                @foreach($cycles as $cy)
-                                <option value="{{ $cy['cycle'] }}"
-                                        data-total="{{ number_format($cy['total'], 2) }}"
-                                        data-months="{{ $cy['months'] }}"
-                                        data-cycle="{{ $cy['cycle'] }}"
-                                        data-save="{{ $cy['save'] }}">
-                                    {{ $cy['label'] }} — @ $ {{ number_format($cy['total'], 2) }}{{ $cy['save'] ? ' ('.$cy['save'].')' : '' }}
-                                </option>
-                                @endforeach
-                            </select>
-
-                            {{-- Breakdown rows removed — dropdown only --}}
-
-                            <form method="POST" action="{{ route('cart.add.public') }}" id="form-{{ $plan->id }}" style="margin-top:8px;display:none;">
+                            <form method="POST" action="{{ route('cart.add.public') }}">
                                 @csrf
                                 <input type="hidden" name="type"          value="hosting">
                                 <input type="hidden" name="package_id"    value="{{ $plan->id }}">
                                 <input type="hidden" name="name"          value="{{ $plan->name }}">
-                                <input type="hidden" name="billing_cycle" id="cycle-input-{{ $plan->id }}" value="">
+                                <input type="hidden" name="billing_cycle" value="yearly">
                                 <button type="submit"
                                         style="width:100%;background:#0066FF;color:#fff;border:none;border-radius:10px;padding:13px 18px;font-size:.9rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;"
                                         onmouseover="this.style.background='#0050CC'"
