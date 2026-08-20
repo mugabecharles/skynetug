@@ -577,39 +577,64 @@
                             @endforeach
                         </ul>
 
-                        {{-- Billing cycle dropdown --}}
+                        {{-- Billing cycle dropdown + breakdown --}}
                         @php
-                            $cycles = [];
-                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'1 Month  — $ '.number_format($plan->price_monthly, 2),    'cycle'=>'monthly',    'total'=>$plan->price_monthly,       'monthly'=>$plan->price_monthly];
-                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'3 Months — $ '.number_format($plan->price_monthly*3, 2),   'cycle'=>'monthly',    'total'=>$plan->price_monthly*3,     'monthly'=>$plan->price_monthly];
-                            if ($plan->price_monthly > 0)    $cycles[] = ['label'=>'6 Months — $ '.number_format($plan->price_monthly*6, 2),   'cycle'=>'monthly',    'total'=>$plan->price_monthly*6,     'monthly'=>$plan->price_monthly];
-                            if ($plan->price_yearly > 0)     $cycles[] = ['label'=>'12 Months — $ '.number_format($plan->price_yearly, 2).' (Save 20%)',  'cycle'=>'yearly',     'total'=>$plan->price_yearly,        'monthly'=>$plan->price_yearly/12];
-                            if ($plan->price_biennially > 0) $cycles[] = ['label'=>'24 Months — $ '.number_format($plan->price_biennially, 2).' (Save 30%)', 'cycle'=>'biennially', 'total'=>$plan->price_biennially,    'monthly'=>$plan->price_biennially/24];
+                            $cycles = array_values(array_filter([
+                                ['label'=>'1 Month',   'months'=>1,  'cycle'=>'monthly',    'total'=>(float)$plan->price_monthly,       'save'=>''],
+                                ['label'=>'3 Months',  'months'=>3,  'cycle'=>'monthly',    'total'=>(float)$plan->price_monthly*3,     'save'=>''],
+                                ['label'=>'6 Months',  'months'=>6,  'cycle'=>'monthly',    'total'=>(float)$plan->price_monthly*6,     'save'=>''],
+                                ['label'=>'12 Months', 'months'=>12, 'cycle'=>'yearly',     'total'=>(float)$plan->price_yearly,        'save'=>'Save 20%'],
+                                ['label'=>'24 Months', 'months'=>24, 'cycle'=>'biennially', 'total'=>(float)$plan->price_biennially,    'save'=>'Save 30%'],
+                            ], fn($c) => $c['total'] > 0));
                         @endphp
 
                         <div class="mt-auto">
                             <hr style="border-color:#f3f4f6;margin:0 0 8px;">
+
                             <select id="cycle-select-{{ $plan->id }}"
-                                    onchange="updatePlanCycleSelect({{ $plan->id }}, this)"
-                                    style="width:100%;border:1.5px solid #e8ecf0;border-radius:10px;padding:12px 16px;font-size:.9rem;color:#374151;background:#fff url('data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\' viewBox=\'0 0 12 8\'><path fill=\'%236B7280\' d=\'M1 1l5 5 5-5\'/></svg>') no-repeat right 14px center;appearance:none;-webkit-appearance:none;cursor:pointer;margin-bottom:12px;font-weight:500;">
-                                <option value="" disabled selected>Choose preferred billing cycle</option>
+                                    onchange="showCycleBreakdown({{ $plan->id }}, this)"
+                                    style="width:100%;border:1.5px solid #e8ecf0;border-radius:10px;padding:10px 14px;font-size:.88rem;color:#6B7280;background:#fff;appearance:none;cursor:pointer;font-weight:500;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22><path fill=%22none%22 stroke=%22%236B7280%22 stroke-width=%221.5%22 d=%22M1 1l5 5 5-5%22/></svg>');background-repeat:no-repeat;background-position:right 12px center;">
+                                <option value="" disabled selected style="color:#9CA3AF;">Choose preferred billing cycle</option>
                                 @foreach($cycles as $cy)
                                 <option value="{{ $cy['cycle'] }}"
                                         data-total="{{ number_format($cy['total'], 2) }}"
-                                        data-monthly="{{ number_format($cy['monthly'], 2) }}"
+                                        data-months="{{ $cy['months'] }}"
                                         data-cycle="{{ $cy['cycle'] }}"
-                                        {{ $cy['cycle'] === 'yearly' ? 'selected' : '' }}>
-                                    {{ $cy['label'] }}
+                                        data-save="{{ $cy['save'] }}">
+                                    {{ $cy['label'] }} — @ $ {{ number_format($cy['total'], 2) }}{{ $cy['save'] ? ' ('.$cy['save'].')' : '' }}
                                 </option>
                                 @endforeach
                             </select>
 
-                            <form method="POST" action="{{ route('cart.add.public') }}">
+                            {{-- Breakdown rows — hidden until selection --}}
+                            <div id="breakdown-{{ $plan->id }}" style="display:none;border:1.5px solid #e8ecf0;border-radius:10px;margin-top:8px;overflow:hidden;">
+                                @foreach($cycles as $cy)
+                                <div class="cycle-row-{{ $plan->id }}"
+                                     data-cycle="{{ $cy['cycle'] }}"
+                                     data-months="{{ $cy['months'] }}"
+                                     style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;{{ !$loop->last ? 'border-bottom:1px solid #f3f4f6;' : '' }}cursor:pointer;"
+                                     onclick="selectFromBreakdown({{ $plan->id }}, '{{ $cy['cycle'] }}', {{ $cy['months'] }})">
+                                    <div style="font-size:.875rem;font-weight:600;color:#374151;">
+                                        {{ $cy['label'] }}
+                                        @if($cy['save'])
+                                        <span style="background:#d1fae5;color:#065f46;font-size:.68rem;font-weight:700;border-radius:20px;padding:2px 8px;margin-left:6px;">{{ $cy['save'] }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="breakdown-price-{{ $plan->id }}"
+                                          data-usd="{{ number_format($cy['total'], 2) }}"
+                                          style="font-size:.875rem;font-weight:700;color:#0066FF;">
+                                        @ $ {{ number_format($cy['total'], 2) }}
+                                    </span>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <form method="POST" action="{{ route('cart.add.public') }}" id="form-{{ $plan->id }}" style="margin-top:8px;display:none;">
                                 @csrf
                                 <input type="hidden" name="type"          value="hosting">
                                 <input type="hidden" name="package_id"    value="{{ $plan->id }}">
                                 <input type="hidden" name="name"          value="{{ $plan->name }}">
-                                <input type="hidden" name="billing_cycle" id="cycle-input-{{ $plan->id }}" value="yearly">
+                                <input type="hidden" name="billing_cycle" id="cycle-input-{{ $plan->id }}" value="">
                                 <button type="submit"
                                         style="width:100%;background:#0066FF;color:#fff;border:none;border-radius:10px;padding:13px 18px;font-size:.9rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s;"
                                         onmouseover="this.style.background='#0050CC'"
@@ -632,24 +657,25 @@
 
         @push('scripts')
         <script>
-        // Called when dropdown changes — shows breakdown table
         function showCycleBreakdown(planId, select) {
-            const breakdown = document.getElementById('breakdown-' + planId);
-            const form      = document.getElementById('form-' + planId);
-            const cycleInput= document.getElementById('cycle-input-' + planId);
-            const selected  = select.options[select.selectedIndex];
+            const breakdown  = document.getElementById('breakdown-' + planId);
+            const form       = document.getElementById('form-' + planId);
+            const cycleInput = document.getElementById('cycle-input-' + planId);
+            const selected   = select.options[select.selectedIndex];
             if (!selected.value) return;
 
+            // Show breakdown
             breakdown.style.display = 'block';
 
+            // Highlight selected row
             document.querySelectorAll('.cycle-row-' + planId).forEach(row => {
-                const match = row.dataset.cycle === selected.value && row.dataset.months === selected.dataset.months;
-                row.style.background  = match ? '#eff6ff' : '';
-                row.style.borderLeft  = match ? '3px solid #0066FF' : '';
+                const match = row.dataset.cycle === selected.value && row.dataset.months == selected.dataset.months;
+                row.style.background = match ? '#eff6ff' : '';
+                row.style.borderLeft = match ? '3px solid #0066FF' : '';
             });
 
-            cycleInput.value    = selected.value;
-            form.style.display  = 'block';
+            cycleInput.value   = selected.value;
+            form.style.display = 'block';
             updatePriceDisplay(planId, parseFloat(selected.dataset.total), selected.value);
         }
 
@@ -676,7 +702,23 @@
             form.style.display = 'block';
         }
 
-        function updatePriceDisplay(planId, total, cycle) {
+        function updatePriceDisplay(planId, usdTotal, cycle) {
+            // Get current currency rate
+            const code = sessionStorage.getItem('currency') || 'USD';
+            const RATES = { USD:1, UGX:3750, KES:129, TZS:2640, GBP:0.79, EUR:0.92 };
+            const SYMS  = { USD:'$', UGX:'UGX', KES:'KSh', TZS:'TSh', GBP:'£', EUR:'€' };
+            const rate  = RATES[code] || 1;
+            const sym   = SYMS[code] || '$';
+            const decimals = rate >= 100 ? 0 : 2;
+
+            function fmt(usd) {
+                const val = usd * rate;
+                return sym + ' ' + new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals,
+                }).format(val);
+            }
+
             const priceEl  = document.getElementById('price-display-' + planId);
             const billedEl = document.getElementById('billed-display-' + planId);
             if (!priceEl) return;
@@ -685,20 +727,19 @@
             const per  = priceEl.querySelector('.per');
 
             if (cycle === 'yearly') {
-                const mo = (total / 12).toFixed(2);
-                if (span) { span.dataset.usd = mo; span.textContent = '$ ' + mo; }
+                const moUsd = usdTotal / 12;
+                if (span) { span.dataset.usd = moUsd.toFixed(2); span.textContent = fmt(moUsd); }
                 if (per)  per.textContent = ' /mo';
-                if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + '/yr';
+                if (billedEl) billedEl.textContent = 'Billed ' + fmt(usdTotal) + '/yr';
             } else if (cycle === 'biennially') {
-                const mo = (total / 24).toFixed(2);
-                if (span) { span.dataset.usd = mo; span.textContent = '$ ' + mo; }
+                const moUsd = usdTotal / 24;
+                if (span) { span.dataset.usd = moUsd.toFixed(2); span.textContent = fmt(moUsd); }
                 if (per)  per.textContent = ' /mo';
-                if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + '/2yr';
+                if (billedEl) billedEl.textContent = 'Billed ' + fmt(usdTotal) + '/2yr';
             } else {
-                // monthly — total IS the monthly price
-                if (span) { span.dataset.usd = total.toFixed(2); span.textContent = '$ ' + total.toFixed(2); }
+                if (span) { span.dataset.usd = usdTotal.toFixed(2); span.textContent = fmt(usdTotal); }
                 if (per)  per.textContent = ' /mo';
-                if (billedEl) billedEl.textContent = 'Billed $' + total.toFixed(2) + '/mo';
+                if (billedEl) billedEl.textContent = 'Billed ' + fmt(usdTotal) + '/mo';
             }
         }
         </script>
