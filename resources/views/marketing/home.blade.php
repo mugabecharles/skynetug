@@ -654,19 +654,78 @@
 
         @push('scripts')
         <script>
-        function showCycleBreakdown(planId, select) {
-            const form       = document.getElementById('form-' + planId);
-            const cycleInput = document.getElementById('cycle-input-' + planId);
-            const selected   = select.options[select.selectedIndex];
-            if (!selected.value) return;
+        // Toggle custom dropdown open/close
+        function toggleCycleDropdown(planId) {
+            const panel  = document.getElementById('cycle-panel-' + planId);
+            const arrow  = document.getElementById('cycle-arrow-' + planId);
+            const trigger= document.getElementById('cycle-trigger-' + planId);
+            const isOpen = panel.style.display !== 'none';
 
-            cycleInput.value   = selected.value;
+            // Close all other open dropdowns first
+            document.querySelectorAll('[id^="cycle-panel-"]').forEach(p => {
+                if (p.id !== 'cycle-panel-' + planId) {
+                    p.style.display = 'none';
+                    const a = document.getElementById(p.id.replace('cycle-panel-', 'cycle-arrow-'));
+                    if (a) a.style.transform = '';
+                }
+            });
+
+            panel.style.display = isOpen ? 'none' : 'block';
+            arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+            trigger.style.borderColor = isOpen ? '#bfdbfe' : '#0066FF';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('[id^="cycle-wrap-"]').forEach(wrap => {
+                if (!wrap.contains(e.target)) {
+                    const planId = wrap.id.replace('cycle-wrap-', '');
+                    const panel  = document.getElementById('cycle-panel-' + planId);
+                    const arrow  = document.getElementById('cycle-arrow-' + planId);
+                    const trigger= document.getElementById('cycle-trigger-' + planId);
+                    if (panel) panel.style.display = 'none';
+                    if (arrow) arrow.style.transform = '';
+                    if (trigger) trigger.style.borderColor = '#bfdbfe';
+                }
+            });
+        });
+
+        // Select a cycle from the dropdown panel
+        function selectCycle(planId, cycle, months, usdTotal, label) {
+            const cycleInput = document.getElementById('cycle-input-' + planId);
+            const form       = document.getElementById('form-' + planId);
+            const trigger    = document.getElementById('cycle-trigger-' + planId);
+            const panel      = document.getElementById('cycle-panel-' + planId);
+            const arrow      = document.getElementById('cycle-arrow-' + planId);
+            const labelEl    = document.getElementById('cycle-label-' + planId);
+
+            // Set values
+            cycleInput.value = cycle;
+
+            // Update trigger text
+            if (labelEl) {
+                labelEl.textContent = label;
+                labelEl.style.color = '#374151';
+            }
+
+            // Close dropdown
+            if (panel)   panel.style.display = 'none';
+            if (arrow)   arrow.style.transform = '';
+            if (trigger) trigger.style.borderColor = '#0066FF';
+
+            // Show Add to Cart button
             form.style.display = 'block';
-            updatePriceDisplay(planId, parseFloat(selected.dataset.total), selected.value);
+
+            // Update price display
+            updatePriceDisplay(planId, usdTotal, cycle);
+        }
+
+        function showCycleBreakdown(planId, select) {
+            // legacy — not used
         }
 
         function selectFromBreakdown(planId, cycle, months) {
-            // kept for compatibility — no longer used
+            // legacy — not used
         }
 
         function updatePriceDisplay(planId, usdTotal, cycle) {
